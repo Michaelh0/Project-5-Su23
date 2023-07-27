@@ -64,7 +64,19 @@ class ValueIterationAgent(ValueEstimationAgent):
           Run the value iteration algorithm. Note that in standard
           value iteration, V_k+1(...) depends on V_k(...)'s.
         """
-        "*** YOUR CODE HERE ***"
+        for i in range(self.iterations):
+            mdp = self.mdp
+            allStates = mdp.getStates()
+            #start = self.mdp.getStartState()
+            tempDict = {}
+            for state in allStates:
+                action = self.computeActionFromValues(state)
+                #print(action)
+                tempDict[state] = self.computeQValueFromValues(state,action)
+            
+            for state in allStates:
+                self.values[state] = tempDict[state]
+        
 
     def getValue(self, state):
         """
@@ -77,8 +89,18 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        mdp = self.mdp
+        if not action:
+            total = self.getValue(state)
+        else:
+            nextStateProbPairs = mdp.getTransitionStatesAndProbs(state,action)
+            
+            total = 0
+            for (nextState,prob) in nextStateProbPairs:
+                reward = mdp.getReward(state, action, nextState)
+                total = total + prob * (reward + self.values[nextState] * self.discount)
+        return total
+
 
     def computeActionFromValues(self, state):
         """
@@ -89,8 +111,26 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        mdp = self.mdp
+        possActions = mdp.getPossibleActions(state)
+
+        
+        act = ""
+        if mdp.isTerminal(state):
+            #print("terminal illness")
+            return None
+        first = True
+        for action in possActions:
+            new = self.computeQValueFromValues(state,action)
+            if first:
+                maxi = new
+                act = action
+                first = False
+            elif new > maxi:
+                maxi = new
+                act = action
+        return act
+        
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
